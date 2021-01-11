@@ -5,36 +5,25 @@ const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
 
-const { createPost } = require('./posts');
+const { createDb } = require('./db');
+const postRoutes = require('./routes/postRoutes');
 
-const app = express();
-const port = process.env.PORT || 5000;
+(async () => {
+    const app = express();
+    const port = process.env.PORT || 5000;
 
-app.use(morgan('dev'));
-app.use(helmet());
-app.use(express.json());
+    await createDb();
 
-if (process.env.NODE_ENV === 'production') {
-    const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
-    app.use(morgan('combined', { stream: accessLogStream }));
-}
+    app.use(morgan('dev'));
+    app.use(helmet());
+    app.use(express.json());
 
-app.post('/create', async (req, res) => {
-    const { title, body } = req.body;
-
-    if (title === '') return res.json({ Error: 'The title is required' });
-    if (body === '') return res.json({ Error: 'The body is required' });
-
-    try {
-        const data = {
-            title: title.trim(),
-            body: body.trim(),
-        };
-        const result = await createPost(data);
-        return res.status(201).json({ id: result[0] });
-    } catch (e) {
-        console.log(e);
+    if (process.env.NODE_ENV === 'production') {
+        const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
+        app.use(morgan('combined', { stream: accessLogStream }));
     }
-});
 
-app.listen(port, () => console.log(`Server is running on port ${port}...`));
+    app.use('/posts', postRoutes);
+
+    app.listen(port, () => console.log(`Server is running on port ${port}...`));
+})();
