@@ -5,6 +5,8 @@ const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
 
+const { createPost } = require('./posts');
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -17,6 +19,22 @@ if (process.env.NODE_ENV === 'production') {
     app.use(morgan('combined', { stream: accessLogStream }));
 }
 
-app.get('/', (_, res) => res.json({ msg: 'ok' }));
+app.post('/create', async (req, res) => {
+    const { title, body } = req.body;
+
+    if (title === '') return res.json({ Error: 'The title is required' });
+    if (body === '') return res.json({ Error: 'The body is required' });
+
+    try {
+        const data = {
+            title: title.trim(),
+            body: body.trim(),
+        };
+        const result = await createPost(data);
+        return res.status(201).json({ id: result[0] });
+    } catch (e) {
+        console.log(e);
+    }
+});
 
 app.listen(port, () => console.log(`Server is running on port ${port}...`));
