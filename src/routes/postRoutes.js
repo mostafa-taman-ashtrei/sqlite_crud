@@ -1,6 +1,6 @@
 const { Router } = require('express');
 
-const { conn } = require('../db');
+const { conn } = require('../config/db');
 
 const router = new Router();
 
@@ -53,6 +53,20 @@ router.post('/del', async (req, res) => {
         const delPost = await conn('posts').where('id', id).del();
         if (delPost === 0) return res.status(404).json({ msg: 'Post not found ...' });
         return res.status(200).json({ msg: 'Post deleted ...' });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ Error: 'A Server error occured ...' });
+    }
+});
+
+router.post('/post', async (req, res) => {
+    const { id } = req.body;
+    if (id === '') return res.status(400).json({ Error: 'The id is required' });
+
+    try {
+        const post = await conn('posts').where('id', id).select('*');
+        if (post.length === 0) return res.status(404).json({ msg: 'Post not found ...' });
+        return res.status(200).json({ post });
     } catch (e) {
         console.log(e);
         return res.status(500).json({ Error: 'A Server error occured ...' });

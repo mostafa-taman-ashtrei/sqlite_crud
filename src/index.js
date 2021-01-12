@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
 
-const { createDb } = require('./db');
+const { createDb } = require('./config/db');
 const postRoutes = require('./routes/postRoutes');
 
 (async () => {
