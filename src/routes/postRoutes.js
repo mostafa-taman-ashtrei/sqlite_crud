@@ -6,7 +6,8 @@ const router = new Router();
 
 router.get('/', async (_, res) => {
     const posts = await conn('posts').select('*');
-    return res.json({ posts });
+    const numOfRecords = posts.length;
+    return res.json({ posts, numOfRecords });
 });
 
 router.post('/create', async (req, res) => {
@@ -67,6 +68,17 @@ router.post('/post', async (req, res) => {
         const post = await conn('posts').where('id', id).select('*');
         if (post.length === 0) return res.status(404).json({ msg: 'Post not found ...' });
         return res.status(200).json({ post });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ Error: 'A Server error occured ...' });
+    }
+});
+
+router.get('/clear', async (_, res) => {
+    try {
+        const clear = await conn('posts').del();
+        if (clear === 0) return res.status(404).json({ msg: 'No posts found ...' });
+        return res.status(200).json({ msg: `Cleared ${clear} posts ...` });
     } catch (e) {
         console.log(e);
         return res.status(500).json({ Error: 'A Server error occured ...' });
